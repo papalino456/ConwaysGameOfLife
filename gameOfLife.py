@@ -7,8 +7,10 @@ winSize = (width, height)
 array = []
 
 pygame.init()
-pygame.display.set_caption("The game of life")
+pygame.display.init()
 screen = pygame.display.set_mode(winSize)
+pygame.display.set_caption("The game of life")
+
 
 clock = pygame.time.Clock()
 
@@ -26,7 +28,37 @@ class cell():
         else:
             square = pygame.draw.rect(screen,(255,255,255),(self.x*10,(self.y*10),9,9))
 
+class button():
+    def __init__(self, color, x,y,width,height, text=''):
+        self.color = color
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.text = text
+
+    def draw(self,win,outline=None):
+        #Call this method to draw the button on the screen
+        if outline:
+            pygame.draw.rect(win, outline, (self.x-2,self.y-2,self.width+4,self.height+4),0)
+            
+        pygame.draw.rect(win, self.color, (self.x,self.y,self.width,self.height),0)
+        
+        if self.text != '':
+            font = pygame.font.SysFont('comicsans', 60)
+            text = font.render(self.text, 1, (0,0,0))
+            win.blit(text, (self.x + (self.width/2 - text.get_width()/2), self.y + (self.height/2 - text.get_height()/2)))
+
+    def isOver(self, pos):
+        #Pos is the mouse position or a tuple of (x,y) coordinates
+        if pos[0] > self.x and pos[0] < self.x + self.width:
+            if pos[1] > self.y and pos[1] < self.y + self.height:
+                return True
+            
+        return False
+
 def spawn():
+    array.clear()
     for x in range(90):
         tempArray = []
         for y in range(40):
@@ -108,20 +140,30 @@ def update():
             array[x][y].state = array[x][y].next
             array[x][y].draw()
 
+def reset():
+    pygame.display.update()
+    spawn()
 
 def main():
     
-    running = True
     spawn()
+    restartButton = button((200,200,200),350,410,200,75,text="restart")
     
+
+    running = True
     while running:
 
         for event in pygame.event.get():
+            pos = pygame.mouse.get_pos()
             if event.type ==  pygame.QUIT:
                 running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if restartButton.isOver(pos):
+                    reset()
 
         run()
         update()
+        restartButton.draw(screen)
         pygame.display.update()
         clock.tick(5)
 
